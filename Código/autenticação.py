@@ -285,6 +285,31 @@ for descritor in descritores:
             if acur < pior_fold[1]:
                 pior_fold = (fold_id, acur)
 
-        print(f"\nAcurácia média: {np.mean(acuracias):.4f} ± {np.std(acuracias):.4f}")
-        print(f"Melhor fold: {melhor_fold}")
-        print(f"Pior fold: {pior_fold}")
+
+
+        with open(arquivo_config, "w", encoding="utf-8") as f:
+            f.write(f"EXECUTION_TIMESTAMP: {timestamp}\n")
+            f.write(f"DESCRIPTOR: {descritor}\n")
+            f.write(f"MODEL: {modelo}\n\n")
+
+        #Colocando no arquivo de config os parametros (Em ingles, conforme estava no pptx da atividade)
+            if modelo == "linear":
+                f.write("LINEAR_SPECIFICATION: ('input_layer', {}, 'softmax', 'cross_entropy')\n".format(n_atrib))
+                f.write(f"LINEAR_OPERATION_LR: {lr}\n")
+                f.write(f"LINEAR_OPERATION_L2: {l2}\n")
+                f.write(f"LINEAR_OPERATION_MAX_EPOCHS: {epocas}\n")
+                f.write(f"LINEAR_OPERATION_BATCH_SIZE: {batch}\n")
+                f.write(f"LINEAR_OPERATION_PATIENCE: {paciencia}\n")
+            else:
+                f.write("MLP_SPECIFICATION: ('layer 0', {}, 'relu', 'cross_entropy')\n".format(h1))
+                f.write("MLP_SPECIFICATION: ('layer 1', {}, 'relu', 'cross_entropy')\n".format(h2))
+                f.write("MLP_SPECIFICATION: ('output_layer', {}, 'softmax', 'cross_entropy')\n".format(num_classes))
+                f.write(f"MLP_OPERATION_LR_METHOD: FIX\n")
+                f.write(f"MLP_OPERATION_LR_PARAMS: {lr}\n")
+                f.write(f"MLP_OPERATION_INITIALISATION: He_2015\n")
+                f.write(f"MLP_OPERATION_MAX_EPOCHS: {epocas}\n")
+                f.write(f"MLP_OPERATION_MIN_EPOCHS: 1\n")
+                f.write(f"MLP_OPERATION_STOP_WINDOW: {paciencia}\n")
+                f.write(f"MLP_OPERATION_BATCH_SIZE: {batch}\n")
+                f.write(f"MLP_OPERATION_L2: {l2}\n")
+

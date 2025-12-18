@@ -1,0 +1,3 @@
+Execução: 18/12/2025 18:01
+Descritor: HOG
+Modelo: linear

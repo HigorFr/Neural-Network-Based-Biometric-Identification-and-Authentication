@@ -4,9 +4,8 @@ import os
 import datetime
 from sklearn.preprocessing import LabelEncoder
 
-# =========================================================
-# FUNÇÕES DE INICIALIZAÇÃO
-# =========================================================
+
+#FUNÇÕES DE INICIALIZAÇÃO de pesos
 def inicializar_weights_he(inp, out):
     return np.random.randn(out, inp) * np.sqrt(2.0 / inp)
 
@@ -40,8 +39,7 @@ for descritor in descritores:
     print(f"Número de classes (IDs): {len(ids_unicos)}")
     print(f"Número de amostras: {len(vetores)}")
 
-    # Codificar labels para 0, 1, 2, ...
-    le = LabelEncoder()
+    le = LabelEncoder() #Foi utilizaod aqui o método do Sklearn para rotular mais facilmente
     rotulos_encoded = le.fit_transform(rotulos)
     num_classes = len(le.classes_)
 
@@ -118,9 +116,13 @@ for descritor in descritores:
                 b = np.zeros(num_classes)
 
                 # Hiperparâmetros
-                lr, l2, epocas, batch = 0.01, 1e-4, 100, 64
+                lr =  0.005
+                l2 =  1e-4 
+                epocas = 20
+                batch = 64
+
                 melhor_val_loss = np.inf
-                paciencia = 15
+                paciencia = 5
                 piora = 0
 
                 for ep in range(epocas):
@@ -201,12 +203,15 @@ for descritor in descritores:
                 W3, b3 = inicializar_weights_xavier(h2, num_classes), np.zeros(num_classes)
 
                 # Hiperparâmetros
-                lr, l2, epocas, batch = 0.001, 1e-5, 150, 64
+                lr =  0.001
+                l2 =  1e-5 
+                epocas = 20
+                batch = 64
                 dropout_rate = 0.5
                 
                 melhor_val_loss = np.inf
                 melhor_val_acc = 0
-                paciencia = 20
+                paciencia = 5
                 piora = 0
 
                 for ep in range(epocas):
@@ -356,22 +361,30 @@ for descritor in descritores:
         print(f"Pior fold: {pior_fold}")
 
         # Salvar configuração final
-        with open(arquivo_config, "a", encoding="utf-8") as f:
-            f.write(f"\nNúmero de classes: {num_classes}\n")
-            f.write(f"Número de atributos: {n_atrib}\n")
-            
-            f.write(f"\nResultados:\n")
-            f.write(f"Acurácias: {[f'{acc:.4f}' for acc in acuracias]}\n")
-            f.write(f"Acurácia média: {np.mean(acuracias):.4f} ± {np.std(acuracias):.4f}\n")
-            
-            f.write(f"\nPrecisões: {[f'{p:.4f}' for p in precisoes]}\n")
-            f.write(f"Precisão média: {np.mean(precisoes):.4f}\n")
-            
-            f.write(f"\nRecalls: {[f'{r:.4f}' for r in recalls]}\n")
-            f.write(f"Recall médio: {np.mean(recalls):.4f}\n")
-            
-            f.write(f"\nF1-Scores: {[f'{f:.4f}' for f in f1_scores]}\n")
-            f.write(f"F1-Score médio: {np.mean(f1_scores):.4f}\n")
-            
-            f.write(f"\nMelhor fold: {melhor_fold}\n")
-            f.write(f"Pior fold: {pior_fold}\n")
+        with open(arquivo_config, "w", encoding="utf-8") as f:
+            f.write(f"EXECUTION_TIMESTAMP: {timestamp}\n")
+            f.write(f"DESCRIPTOR: {descritor}\n")
+            f.write(f"MODEL: {modelo}\n\n")
+
+            if modelo == "linear":
+                f.write(f"LINEAR_SPECIFICATION: ('input_layer', {n_atrib}, 'softmax', 'cross_entropy')\n")
+                f.write(f"LINEAR_OPERATION_LR_METHOD: FIX\n")
+                f.write(f"LINEAR_OPERATION_LR_PARAMS: {lr}\n")
+                f.write(f"LINEAR_OPERATION_INITIALISATION: Glorot_Bengio_2010\n")
+                f.write(f"LINEAR_OPERATION_MAX_EPOCHS: {epocas}\n")
+                f.write(f"LINEAR_OPERATION_BATCH_SIZE: {batch}\n")
+                f.write(f"LINEAR_OPERATION_PATIENCE: {paciencia}\n")
+                f.write(f"LINEAR_OPERATION_L2: {l2}\n")
+            else:
+                f.write(f"MLP_SPECIFICATION: ('layer 0', {h1}, 'relu', 'cross_entropy')\n")
+                f.write(f"MLP_SPECIFICATION: ('layer 1', {h2}, 'relu', 'cross_entropy')\n")
+                f.write(f"MLP_SPECIFICATION: ('output_layer', {num_classes}, 'softmax', 'cross_entropy')\n")
+                f.write(f"MLP_OPERATION_LR_METHOD: FIX\n")
+                f.write(f"MLP_OPERATION_LR_PARAMS: {lr}\n")
+                f.write(f"MLP_OPERATION_INITIALISATION: He_2015\n")
+                f.write(f"MLP_OPERATION_MAX_EPOCHS: {epocas}\n")
+                f.write(f"MLP_OPERATION_MIN_EPOCHS: 1\n")
+                f.write(f"MLP_OPERATION_STOP_WINDOW: {paciencia}\n")
+                f.write(f"MLP_OPERATION_BATCH_SIZE: {batch}\n")
+                f.write(f"MLP_OPERATION_L2: {l2}\n")
+                f.write(f"MLP_OPERATION_DROPOUT_RATE: {dropout_rate}\n")
