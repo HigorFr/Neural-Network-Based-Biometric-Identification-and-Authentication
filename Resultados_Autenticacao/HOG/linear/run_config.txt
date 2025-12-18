@@ -1,0 +1,8 @@
+Execucao em 12/12/2025 15:17
+
+Descritor: HOG
+Modelo: linear
+Acuracias: [np.float64(0.3284313725490196), np.float64(0.3103448275862069), np.float64(0.2315270935960591), np.float64(0.31527093596059114), np.float64(0.3251231527093596)]
+Acuracia media: 0.3021
+Melhor fold: (0, np.float64(0.3284313725490196))
+Pior fold: (2, np.float64(0.2315270935960591))

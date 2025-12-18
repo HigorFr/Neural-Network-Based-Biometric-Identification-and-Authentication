@@ -1,0 +1,4 @@
+/.venv
+/Código/Dataset
+descritores_HOG.npz
+descritores_LBP.npz
