@@ -206,30 +206,37 @@ for descritor in descritores:
                 melhor_loss = np.inf
                 piora = 0
 
-                for ep in range(epocas):
-                    perm = np.random.permutation(len(X_treino))
+                for ep in range(epocas): #loop da época
+                    perm = np.random.permutation(len(X_treino)) #embaralha
                     Xs, ys = X_treino[perm], y_treino[perm]
 
                     losses = [] 
 
-                    for i in range(0, len(Xs), batch):
+                    for i in range(0, len(Xs), batch): #loop pelas batches
+                        
                         Xb, yb = Xs[i:i+batch], ys[i:i+batch]
 
-                        z1 = Xb @ W1.T + b1
-                        a1 = np.maximum(0, z1)
-                        z2 = a1 @ W2.T + b2
-                        a2 = np.maximum(0, z2)
-                        logits = a2 @ W3.T + b3
 
+                        #fazendo o foward
+                        z1 = Xb @ W1.T + b1        #Soma ponderada + bias da primeira camada
+                        a1 = np.maximum(0, z1)     #ReLU da primeira camada
+                        z2 = a1 @ W2.T + b2        #Soma ponderada + bias da segunda camada
+                        a2 = np.maximum(0, z2)     #ReLU da segunda camada
+                        logits = a2 @ W3.T + b3    #Saída linear (logits)
+
+                        #faz o softmax
                         exp = np.exp(logits - logits.max(axis=1, keepdims=True))
                         probs = exp / (exp.sum(axis=1, keepdims=True) + 1e-8)
 
+                        #coloca penalização (o l2)
                         loss = -np.mean(np.log(probs[np.arange(len(yb)), yb] + 1e-8))
                         total_loss = loss + 0.5 * l2 * (
                             np.sum(W1*W1) + np.sum(W2*W2) + np.sum(W3*W3)
                         )
 
-                        losses.append(total_loss)  # <-- AQUI
+                        losses.append(total_loss)  #aguarda o loss desse batch
+
+                        #aqui começa o backprop
 
                         g3 = probs
                         g3[np.arange(len(yb)), yb] -= 1
@@ -238,6 +245,7 @@ for descritor in descritores:
                         g2 = (g3 @ W3) * (z2 > 0)
                         g1 = (g2 @ W2) * (z1 > 0)
 
+                        # Atualiza os pesssos e bias com gradiente descente  e o l2
                         W3 -= lr * (g3.T @ a2 + l2 * W3)
                         b3 -= lr * g3.sum(axis=0)
                         W2 -= lr * (g2.T @ a1 + l2 * W2)
@@ -245,8 +253,9 @@ for descritor in descritores:
                         W1 -= lr * (g1.T @ Xb + l2 * W1)
                         b1 -= lr * g1.sum(axis=0)
 
-                    erro_treino = np.mean(losses)  # <-- AQUI
+                    erro_treino = np.mean(losses)  #para salvar no log
 
+                    #aplica a validação
                     z1v = X_teste @ W1.T + b1
                     a1v = np.maximum(0, z1v)
                     z2v = a1v @ W2.T + b2
@@ -257,6 +266,7 @@ for descritor in descritores:
                     probs_val = exp_val / (exp_val.sum(axis=1, keepdims=True) + 1e-8)
                     val_loss = -np.mean(np.log(probs_val[np.arange(len(y_teste)), y_teste] + 1e-8))
 
+                    #registra o erro
                     with open(arquivo_error, "a", encoding="utf-8") as f:
                         f.write(f"{ep};{erro_treino:.8f};{val_loss:.8f}\n")
 
