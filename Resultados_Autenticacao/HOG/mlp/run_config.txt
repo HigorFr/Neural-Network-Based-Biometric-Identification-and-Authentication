@@ -1,3 +1,0 @@
-Execucao em 18/12/2025 14:10
-Descritor: HOG
-Modelo: mlp

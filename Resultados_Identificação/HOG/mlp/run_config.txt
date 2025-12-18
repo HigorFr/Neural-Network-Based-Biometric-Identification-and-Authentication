@@ -1,8 +1,0 @@
-Execucao em 12/12/2025 15:18
-
-Descritor: HOG
-Modelo: mlp
-Acuracias: [np.float64(0.003926701570680628), np.float64(0.0022905759162303663), np.float64(0.0022905759162303663), np.float64(0.003600654664484452), np.float64(0.0022913256955810145)]
-Acuracia media: 0.0029
-Melhor fold: (0, np.float64(0.003926701570680628))
-Pior fold: (1, np.float64(0.0022905759162303663))
