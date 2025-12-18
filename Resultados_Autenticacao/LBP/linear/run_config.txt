@@ -1,0 +1,12 @@
+Execucao em 18/12/2025 13:06
+
+Descritor: LBP
+Modelo: linear
+Acuracias: [np.float64(0.543918918918919), np.float64(0.5427927927927928), np.float64(0.5413595413595413), np.float64(0.5411036036036037), np.float64(0.5395167895167895)]
+Acuracia media: 0.5417
+Melhor fold: (0, np.float64(0.543918918918919))
+Pior fold: (4, np.float64(0.5395167895167895))
+Max Épocas: 15
+ Taxa de Aprendizado:' 0.005
+ Tamanho do Batch:' 64
+ 

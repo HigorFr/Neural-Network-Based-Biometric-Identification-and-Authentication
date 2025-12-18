@@ -18,7 +18,7 @@ df = pd.read_csv("Código/Dataset/identity_CelebA.txt", sep=" ", names=["img", "
 contagem = df["id"].value_counts()
 
 #Seleciona o top 20%
-qtd_ids = int(len(contagem) * 0.05)
+qtd_ids = int(len(contagem) * 0.20)
 ids_escolhidos = contagem.head(qtd_ids).index
 
 #Filtra o dataframe
@@ -46,18 +46,33 @@ for nome_img, ident in tqdm(zip(imgs_filtradas, ids_filtrados), total=len(imgs_f
     caminho = os.path.join(caminho_imgs, nome_img)
     img = imread(caminho)
 
+    #deixa em tom de cinza
     if img.ndim == 3:
         img = rgb2gray(img)
 
-    img = resize(img, (128, 128), anti_aliasing=True)
+    img = resize(img, (128, 128), anti_aliasing=True, preserve_range=True)
 
     if usar_descritor == "HOG":
-        descritor = hog(img, orientations=9, pixels_per_cell=(8,8), cells_per_block=(2,2), block_norm='L2-Hys')
+        descritor = hog(
+        img,
+        orientations=8,
+        pixels_per_cell=(16,16),
+        cells_per_block=(2,2),
+        block_norm='L2-Hys'
+        )
+
 
     else:  # LBP
-        img_uint8 = (img * 255).astype(np.uint8)   # <--- converte para inteiro
-        lbp = local_binary_pattern(img_uint8, 8, 1, method="uniform")
-        descritor, _ = np.histogram(lbp.ravel(), bins=np.arange(60), density=True)
+        P = 8
+        R = 1
+        img_uint8 = (img * 255).astype(np.uint8)
+        lbp = local_binary_pattern(img_uint8, P, R, method="uniform")
+        n_bins = P + 2
+        descritor, _ = np.histogram(
+            lbp.ravel(),
+            bins=np.arange(n_bins + 1),
+            density=True
+        )
 
     vetores.append(descritor)
     rótulos.append(ident)
@@ -71,6 +86,9 @@ ids_unicos = np.unique(rótulos)
 mapeamento = {idv: i for i, idv in enumerate(ids_unicos)}
 rótulos = np.array([mapeamento[i] for i in rótulos])
 num_classes = len(ids_unicos)
+
+print(vetores.shape)
+print(np.isnan(vetores).sum())
 
 
 #Salvar arquivo que a main vai usar

@@ -1,8 +1,12 @@
-Execucao em 12/12/2025 15:17
+Execucao em 18/12/2025 13:05
 
 Descritor: HOG
 Modelo: linear
-Acuracias: [np.float64(0.3284313725490196), np.float64(0.3103448275862069), np.float64(0.2315270935960591), np.float64(0.31527093596059114), np.float64(0.3251231527093596)]
-Acuracia media: 0.3021
-Melhor fold: (0, np.float64(0.3284313725490196))
-Pior fold: (2, np.float64(0.2315270935960591))
+Acuracias: [np.float64(0.5153562653562653), np.float64(0.5278460278460279), np.float64(0.5353194103194103), np.float64(0.5034295659295659), np.float64(0.5542588042588042)]
+Acuracia media: 0.5272
+Melhor fold: (4, np.float64(0.5542588042588042))
+Pior fold: (3, np.float64(0.5034295659295659))
+Max Épocas: 15
+ Taxa de Aprendizado:' 0.005
+ Tamanho do Batch:' 64
+ 

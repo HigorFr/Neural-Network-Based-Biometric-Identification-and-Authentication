@@ -1,0 +1,9 @@
+Execucao em 18/12/2025 13:23
+Descritor: LBP
+Modelo: mlp
+
+Acurácias: [np.float64(0.539004914004914), np.float64(0.5454545454545454), np.float64(0.5354217854217854), np.float64(0.5290745290745291), np.float64(0.5417690417690417)]
+Acurácia média: 0.5381
+Desvio padrão: 0.0056
+Melhor fold: (1, np.float64(0.5454545454545454))
+Pior fold: (3, np.float64(0.5290745290745291))
