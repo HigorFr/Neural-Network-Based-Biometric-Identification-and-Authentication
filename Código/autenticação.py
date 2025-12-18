@@ -4,10 +4,8 @@ import os
 import datetime
 
 
-# =========================================================
-# GERAÇÃO DE PARES BALANCEADOS
-# =========================================================
-def gerar_pares(vetores, rotulos, pares_positivos=12, pares_negativos=12):
+#funções auxiliares 
+def gerar_pares(vetores, rotulos, pares_positivos=12, pares_negativos=12): #isso aqui é para gerar os pares para o modelo tentar adivionhar se são ou não a mesma pessoa
     rng = np.random.default_rng(random_state)
     X_pairs, y_pairs = [], []
 
@@ -40,24 +38,19 @@ def gerar_pares(vetores, rotulos, pares_positivos=12, pares_negativos=12):
 
     return np.array(X_pairs), np.array(y_pairs)
 
-def inicializar_weights_he(inp, out):
+
+#aqui é para inicializar os pesos com 
+def inicializar_pesos_final(inp, out):
     return np.random.randn(out, inp) * np.sqrt(2.0 / inp)
 
-def inicializar_weights_xavier(inp, out):
+def inicializar_pesos_xavier(inp, out):
     return np.random.randn(out, inp) * np.sqrt(2.0 / (inp + out))
 
 
 
-
-
-
-
-
-# =========================================================
-# CONFIGURAÇÕES GERAIS
-# =========================================================
+#definindo os parametros gerais
 timestamp = datetime.datetime.now().strftime("%d/%m/%Y %H:%M")
-descritores = ["HOG","LBP"]  # "HOG" ou "LBP"
+descritores = ["HOG","LBP"]  #Isso é para fazer o for e deixar o pc rodando sem intervenção (Antes era um parametro colocado manualmente)
 modelos = ["linear", "mlp"]
 random_state = 42
 
@@ -65,57 +58,51 @@ random_state = 42
 
 for descritor in descritores:
 
+    #Carrega os dados e separa cada parte
     data = np.load(f"Código/descritores_{descritor}.npz")
-
     vetores = data["vetores"]
     rotulos = data["rotulos"]
     ids_unicos = data["ids_unicos"]
     tipo = data["tipo"]
 
     print("Arquivo carregado:", tipo)
-    print("Número real de IDs:", len(ids_unicos))
+    print("Número real de IDs:", len(ids_unicos))#20% já filtrado pelo extrator HOG e LBP
 
 
-    # =========================================================
-    # PREPARAÇÃO DOS DADOS
-    # =========================================================
-    X_pairs, y_pairs = gerar_pares(vetores, rotulos)
-    print("Total de pares:", len(X_pairs))
+    X_pairs, y_pairs = gerar_pares(vetores, rotulos) #Gera os pares de fato
+    print("Total de pares:", len(X_pairs)) 
     print("Dimensão dos pares:", X_pairs.shape)
 
-    kf = KFold(n_splits=5, shuffle=True, random_state=random_state)
+    kf = KFold(n_splits=5, shuffle=True, random_state=random_state) #Faz o fold  (Com k= conforme pedido)
 
-    # =========================================================
-    # LOOP DOS MODELOS
-    # =========================================================
+    
     for modelo in modelos:
 
-        print(f"\n{'='*60}")
-        print(f"MODELO: {modelo.upper()}")
-        print(f"{'='*60}")
 
+        print(f"MODELO: {modelo.upper()}")
+        print(f"------------------------------------------------")
+
+        #ISso aqui é só para configurar onde ele vai guardar as saídas
         pasta_base = f"Resultados_Autenticacao/{descritor}/{modelo}"
         os.makedirs(pasta_base, exist_ok=True)
-
         arquivo_config = os.path.join(pasta_base, "run_config.txt")
         arquivo_error = os.path.join(pasta_base, "run_error.txt")
 
+        #já marca inicio da execção
         with open(arquivo_config, "w", encoding="utf-8") as f:
             f.write(f"Execução: {timestamp}\nDescritor: {descritor}\nModelo: {modelo}\n")
 
         with open(arquivo_error, "w", encoding="utf-8") as f:
             f.write(f"Execucao em {timestamp}\n")
 
-
+        #placeholder que vão ser inseridos durante a execução (Só vai servir pra colocar no log)
         acuracias = []
         melhor_fold = (-1, -np.inf)
         pior_fold = (-1, np.inf)
 
-        # =====================================================
-        # K-FOLD
-        # =====================================================
+        #Aqui aplica o fold
         for fold_id, (treino_idx, teste_idx) in enumerate(kf.split(X_pairs)):
-            print(f"\n--- Fold {fold_id} ---")
+            print(f"\n--- Fold {fold_id} ---") #Printar só pra facilitar na hora de ver
 
             X_treino = X_pairs[treino_idx]
             y_treino = y_pairs[treino_idx]
@@ -131,19 +118,29 @@ for descritor in descritores:
             n_atrib = X_treino.shape[1]
             num_classes = 2
 
-            #Linear
+            #Aqui começa o linear
             if modelo == "linear":
-                W = inicializar_weights_xavier(n_atrib, num_classes)
+                W = inicializar_pesos_xavier(n_atrib, num_classes)
                 b = np.zeros(num_classes)
 
-                lr, l2, epocas, batch = 0.01, 1e-4, 100, 64
-                melhor_loss, paciencia, piora = np.inf, 15, 0
+                #Parametros de fato:
+                lr = 0.005 #taxa de aprendizado
+                l2 = 1e-5 #Penalidade (baixa)
+                epocas = 100 #auto-explicativo
+                batch = 128  #auto-explicativo
+                paciencia = 20 #tempo sem melhorar
+
+                #só placeholders para salvar informação
+                melhor_loss = np.inf
+                piora = 0
 
                 for ep in range(epocas):
+
+                    losses = []   #Aramzena os losses para tirar a média e colocar no log
+
                     perm = np.random.permutation(len(X_treino))
                     X_treino, y_treino = X_treino[perm], y_treino[perm]
 
-                    losses = []   # <-- TEM QUE SER AQUI
 
                     for i in range(0, len(X_treino), batch):
                         Xb = X_treino[i:i+batch]
@@ -191,19 +188,29 @@ for descritor in descritores:
 
 
             else:
-                h1, h2 = 64, 16
-                W1, b1 = inicializar_weights_he(n_atrib, h1), np.zeros(h1)
-                W2, b2 = inicializar_weights_he(h1, h2), np.zeros(h2)
-                W3, b3 = inicializar_weights_xavier(h2, num_classes), np.zeros(num_classes)
+                h1, h2 = 64, 16  #arquitura, aqui defini 64 pra primeira camada e 16 na outra, porque meu pc não aguenta muito
 
-                lr, l2, epocas, batch = 0.001, 1e-5, 150, 64
-                melhor_loss, paciencia, piora = np.inf, 20, 0
+                #define os pesos com bases naquelas funções auxiliares
+                W1, b1 = inicializar_pesos_final(n_atrib, h1), np.zeros(h1)
+                W2, b2 = inicializar_pesos_final(h1, h2), np.zeros(h2)
+                W3, b3 = inicializar_pesos_xavier(h2, num_classes), np.zeros(num_classes)
+
+               #Parametros de fato:
+                lr = 0.005 #taxa de aprendizado
+                l2 = 1e-5 #Penalidade (baixa)
+                epocas = 100 #auto-explicativo
+                batch = 128  #auto-explicativo
+                paciencia = 20 #tempo sem melhorar
+
+
+                melhor_loss = np.inf
+                piora = 0
 
                 for ep in range(epocas):
                     perm = np.random.permutation(len(X_treino))
                     Xs, ys = X_treino[perm], y_treino[perm]
 
-                    losses = []  # <-- AQUI
+                    losses = [] 
 
                     for i in range(0, len(Xs), batch):
                         Xb, yb = Xs[i:i+batch], ys[i:i+batch]
@@ -259,8 +266,10 @@ for descritor in descritores:
                         W2b, b2b = W2.copy(), b2.copy()
                         W3b, b3b = W3.copy(), b3.copy()
                     else:
+                        #vai marcando se nõo ta melhorando
                         piora += 1
-
+                    
+                    #Aqui dá earling stop se não melhorar
                     if piora >= paciencia:
                         W1, b1 = W1b, b1b
                         W2, b2 = W2b, b2b
@@ -280,19 +289,20 @@ for descritor in descritores:
 
             print(f"Acurácia: {acur:.4f}")
 
+            #só para registrar qual é o melhor fold
             if acur > melhor_fold[1]:
                 melhor_fold = (fold_id, acur)
             if acur < pior_fold[1]:
                 pior_fold = (fold_id, acur)
 
 
-
+        #Colocando no arquivo de config os parametros (Em ingles, conforme estava no pptx da atividade)
         with open(arquivo_config, "w", encoding="utf-8") as f:
             f.write(f"EXECUTION_TIMESTAMP: {timestamp}\n")
             f.write(f"DESCRIPTOR: {descritor}\n")
             f.write(f"MODEL: {modelo}\n\n")
 
-        #Colocando no arquivo de config os parametros (Em ingles, conforme estava no pptx da atividade)
+        
             if modelo == "linear":
                 f.write("LINEAR_SPECIFICATION: ('input_layer', {}, 'softmax', 'cross_entropy')\n".format(n_atrib))
                 f.write(f"LINEAR_OPERATION_LR: {lr}\n")
