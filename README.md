@@ -16,15 +16,7 @@ The project uses the CelebA dataset, a large-scale face attributes dataset conta
 
 The dataset must be downloaded separately and organized according to the directory structure described in the project documentation.
 
-## Project Structure
 
-.
-├── data/            # Dataset storage and preprocessing
-├── src/             # Neural network implementation from scratch
-├── utils/           # Helper functions and metrics
-├── models/          # Saved model parameters (if applicable)
-├── pdf/             # Detailed project report
-└── README.md        # Project documentation
 
 ## Implementation Details
 
